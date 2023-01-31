@@ -1,4 +1,5 @@
 import psycopg2
+import csv
 
 # connect to postgres
 
@@ -6,9 +7,7 @@ conn = psycopg2.connect("host=localhost dbname=postgres user=postgres password=1
 cur = conn.cursor()
 
 # create table
-
-try:
-    cur.execute("""
+cur.execute("""
                 CREATE TABLE IF NOT EXISTS latihan_user(
                     id serial PRIMARY KEY,
                     email text,
@@ -17,12 +16,14 @@ try:
                     postcal_code text
                 )
     """)
-    print("Create Table Success")
-except:
-    print("Create Table Failed")
 
-# menambahkan data
-cur.execute("INSERT INTO latihan_user VALUES (%s, %s, %s, %s, %s)", (1, 'ahmadi@yuhu.id', 'ahmadi', '089089089', '40133'))
+# membaca csv
+with open('D:/batch-processing-project-3/source/users_w_postal_code.csv') as f:
+    csv_reader=csv.reader(f, delimiter=',')
+    next(csv_reader) # skip header
+    for row in csv_reader:
+        cur.execute("INSERT INTO latihan_user VALUES (default, %s, %s, %s, %s) ON CONFLICT DO NOTHING", row)
+
 conn.commit()
 
 
